@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.util.Arrays;
 @Data
-public class Request {
+public class Request  extends  P{
 
     private String requestId;
     private String className;
