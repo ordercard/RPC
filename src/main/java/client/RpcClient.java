@@ -2,6 +2,8 @@ package client;
 
 import entry.Request;
 import entry.Response;
+import handler.EDHandler;
+import handler.Spliter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -18,6 +20,7 @@ public class RpcClient extends SimpleChannelInboundHandler<Response> {
     private static final int MAX_RETRY =5;
     private volatile Response response;
     private Object obj = new Object();
+    private Request request;
     private String address;
     private int port;
     private Channel channelHandler;
@@ -28,19 +31,24 @@ public class RpcClient extends SimpleChannelInboundHandler<Response> {
     }
 
     public Response send(Request request) throws InterruptedException {
-       channelHandler.writeAndFlush(request);
+        this.request=request;
+       ChannelFuture channelFuture=  init();
+       channelFuture.channel().writeAndFlush(request);
        wait();
+       channelFuture.channel().close().sync();
        return  response;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-      channelHandler =ctx.channel();
+        //第二种方式
+    // ctx.channel().write(request);
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Response o) throws Exception {
         response=o;
+        System.out.println(response.toString());
         notify();
     }
     /*
@@ -67,16 +75,19 @@ public class RpcClient extends SimpleChannelInboundHandler<Response> {
         return this.response;
      */
 
-   void  init(){
+    ChannelFuture  init() throws InterruptedException {
     NioEventLoopGroup workGroup  =  new NioEventLoopGroup();
     Bootstrap bootstrap =new Bootstrap();
-    bootstrap.group(workGroup).channel(NioSocketChannel.class).
-            handler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                public void initChannel(SocketChannel ch) {
-                }
-            });
-}
+      return  bootstrap.group(workGroup).channel(NioSocketChannel.class).
+               handler(new ChannelInitializer<SocketChannel>() {
+                   @Override
+                   public void initChannel(SocketChannel ch) {
+                       ch.pipeline().addLast(new Spliter());
+                       ch.pipeline().addLast(EDHandler.INSTANCE);
+                       ch.pipeline().addLast(this);
+                   }
+               }).connect(address, port).sync();
+   }
     private static void connect(Bootstrap bootstrap, String host, int port, int retry) {
         bootstrap.connect(host, port).addListener(future -> {
             if (future.isSuccess()) {
