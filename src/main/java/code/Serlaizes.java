@@ -1,4 +1,4 @@
-package EDcode;
+package code;
 
 
 import com.dyuproject.protostuff.LinkedBuffer;
@@ -10,13 +10,14 @@ import org.objenesis.ObjenesisStd;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-public class Serlaize {
+/**
+使用Google的protostuff序列化框架支持多种语言
+ */
+public class Serlaizes {
 
     private static Map<Class<?>, Schema<?>> cachedSchema = new ConcurrentHashMap<Class<?>, Schema<?>>();
 
     private static Objenesis objenesis = new ObjenesisStd(true);
-
 
     private static <T> Schema<T> getSchema(Class<T> cls) {
         Schema<T> schema = (Schema<T>) cachedSchema.get(cls);
@@ -39,7 +40,8 @@ public class Serlaize {
         LinkedBuffer buffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
         try {
             Schema<T> schema = getSchema(cls);
-            return ProtostuffIOUtil.toByteArray(obj, schema, buffer);//序列化
+            //序列化
+            return ProtostuffIOUtil.toByteArray(obj, schema, buffer);
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         } finally {
@@ -56,8 +58,10 @@ public class Serlaize {
         	 * 如果一个类没有参数为空的构造方法时候，那么你直接调用newInstance方法试图得到一个实例对象的时候是会抛出异常的
         	 * 通过ObjenesisStd可以完美的避开这个问题
         	 * */
-            T message = (T) objenesis.newInstance(cls);//实例化
-            Schema<T> schema = getSchema(cls);//获取类的schema
+            //实例化
+            T message = (T) objenesis.newInstance(cls);
+            //获取类的schema
+            Schema<T> schema = getSchema(cls);
             ProtostuffIOUtil.mergeFrom(data, message, schema);
             return message;
         } catch (Exception e) {

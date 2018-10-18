@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.util.Arrays;
 @Data
-public class Request  extends  P{
+public class Request  extends  Packet{
 
     private String requestId;
     private String className;
@@ -23,5 +23,10 @@ public class Request  extends  P{
                 ", parameterTypes=" + Arrays.toString(parameterTypes) +
                 ", parameters=" + Arrays.toString(parameters) +
                 '}';
+    }
+
+    @Override
+    public Byte getCommand() {
+        return  (byte)1;
     }
 }

@@ -3,7 +3,7 @@ package entry;
 import lombok.Data;
 
 @Data
-public class Response {
+public class Response  extends  Packet{
 
     private String requestId;
     private Throwable error;
@@ -18,5 +18,10 @@ public class Response {
                 ", error=" + error +
                 ", result=" + result +
                 '}';
+    }
+
+    @Override
+    public Byte getCommand() {
+        return    (byte)2;
     }
 }
