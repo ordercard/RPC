@@ -1,4 +1,4 @@
-package proxy;
+package client.proxy;
 
 import client.RpcClient;
 import entry.Request;
